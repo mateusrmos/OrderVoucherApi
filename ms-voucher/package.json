@@ -1,0 +1,28 @@
+{
+  "name": "ms-voucher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "System used to create vouchers",
+  "main": "src/microservice_runner.js",
+  "dependencies": {
+    "amqplib": "^0.8.0",
+    "axios": "^0.24.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "flatted": "^3.2.4",
+    "lodash": "^4.17.21",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.12.5",
+    "uuid": "^8.3.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node src/microservice_runner.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Mateus Moreira",
+  "license": "ISC"
+}

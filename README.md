@@ -1,158 +1,70 @@
-#  LAMP stack built with Docker Compose
+# OrderVoucherApi
 
-![Landing Page](https://user-images.githubusercontent.com/43859895/141092846-905eae39-0169-4fd7-911f-9ff32c48b7e8.png)
+OrderVoucherApi is a REST API made using [Symfony](https://symfony.com/) that process Orders and Vouchers.
 
+## Installation
 
-A basic LAMP stack environment built using Docker Compose. It consists of the following:
+To configure environment variables you will use the .env files.
 
-* PHP
-* Apache
-* MySQL
-* phpMyAdmin
-As of now, we have several different PHP versions. Use appropriate php version as needed:
+To install you will need to have [docker](https://www.docker.com/) and [docker-compose](https://docs.docker.com/compose/), then when you pull this project go to it's root folder and run the following commands.
 
-* 5.4.x
-* 5.6.x
-* 7.1.x
-* 7.2.x
-* 7.3.x
-* 7.4.x
-* 8.0.x
-
-> Please note that we simplified the project structure from several branches for each php version, to one centralized master branch. Please let us know if you encouter any problems. 
-##  Installation
- 
-* Clone this repository on your local computer
-* configure .env as needed 
-* Run the `docker-compose up -d`.
-
-```shell
-git clone https://github.com/sprintcube/docker-compose-lamp.git
-cd docker-compose-lamp/
-cp sample.env .env
-// modify sample.env as needed
-docker-compose up -d
-// visit localhost
+```bash
+make up
+make install
 ```
 
-Your LAMP stack is now ready!! You can access it via `http://localhost`.
+Then you will need to create the application databases. 
+>To log in the database, the host is: `localhost`, the user is: `root` and the password is: `tiger`
 
-##  Configuration and Usage
-
-### General Information 
-This Docker Stack is build for local development and not for production usage.
-
-### Configuration
-This package comes with default configuration options. You can modify them by creating `.env` file in your root directory.
-To make it easy, just copy the content from `sample.env` file and update the environment variable values as per your need.
-
-### Configuration Variables
-There are following configuration variables available and you can customize them by overwritting in your own `.env` file.
-
----
-#### PHP
----
-_**PHPVERSION**_
-Is used to specify which PHP Version you want to use. Defaults always to latest PHP Version. 
-
-_**PHP_INI**_
-Define your custom `php.ini` modification to meet your requirments. 
-
----
-#### Apache 
----
-
-_**DOCUMENT_ROOT**_
-
-It is a document root for Apache server. The default value for this is `./www`. All your sites will go here and will be synced automatically.
-
-_**APACHE_DOCUMENT_ROOT**_
-
-Apache config file value. The default value for this is /var/www/html.
-
-_**VHOSTS_DIR**_
-
-This is for virtual hosts. The default value for this is `./config/vhosts`. You can place your virtual hosts conf files here.
-
-> Make sure you add an entry to your system's `hosts` file for each virtual host.
-
-_**APACHE_LOG_DIR**_
-
-This will be used to store Apache logs. The default value for this is `./logs/apache2`.
-
----
-#### Database
----
-
-_**DATABASE**_
-Define which MySQL or MariaDB Version you would like to use. 
-
-_**MYSQL_DATA_DIR**_
-
-This is MySQL data directory. The default value for this is `./data/mysql`. All your MySQL data files will be stored here.
-
-_**MYSQL_LOG_DIR**_
-
-This will be used to store Apache logs. The default value for this is `./logs/mysql`.
-
-## Web Server
-
-Apache is configured to run on port 80. So, you can access it via `http://localhost`.
-
-#### Apache Modules
-
-By default following modules are enabled.
-
-* rewrite
-* headers
-
-> If you want to enable more modules, just update `./bin/phpX/Dockerfile`. You can also generate a PR and we will merge if seems good for general purpose.
-> You have to rebuild the docker image by running `docker-compose build` and restart the docker containers.
-
-#### Connect via SSH
-
-You can connect to web server using `docker-compose exec` command to perform various operation on it. Use below command to login to container via ssh.
-
-```shell
-docker-compose exec webserver bash
+```sql
+CREATE DATABASE voucherDB;
+CREATE DATABASE orderDB;
 ```
 
-## PHP
+Then you will need to restart the server:
+```bash
+make restart
+```
 
-The installed version of php depends on your `.env`file.
+Then you will need to migrate the application `orderDB` database:
+```bash
+make migrate-up
+```
 
-#### Extensions
-
-By default following extensions are installed. 
-May differ for PHP Versions <7.x.x
-
-* mysqli
-* pdo_sqlite
-* pdo_mysql
-* mbstring
-* zip
-* intl
-* mcrypt
-* curl
-* json
-* iconv
-* xml
-* xmlrpc
-* gd
-
-> If you want to install more extension, just update `./bin/webserver/Dockerfile`. You can also generate a PR and we will merge if it seems good for general purpose.
-> You have to rebuild the docker image by running `docker-compose build` and restart the docker containers.
+## Usage
+|  PATH| HTTP METHOD| Description|
+| --------------- | ----- | ------------------- |
+| localhost/api/order      | POST  | Create new Order |
+| localhost:5050/api/vouchers   | GET  | Get vouchers list |
 
 
-## Contributing
-We are happy if you want to create a pull request or help people with their issues. If you want to create a PR, please remember that this stack is not built for production usage, and changes should good for general purpose and not overspecialized. 
-> Please note that we simplified the project structure from several branches for each php version, to one centralized master branch.  Please create your PR against master branch. 
-> 
-Thank you! 
+## Request Examples
+### POST localhost/api/order[CREATEORDER]
+```json
+{
+	"amount": 95.26,
+	"userId": 6
+}
+```
+### GET localhost/api/vouchers[LISTVOUCHERS]
 
-## Why you shouldn't use this stack unmodified in production
-We want to empower developers to quickly create creative Applications. Therefore we are providing an easy to set up a local development environment for several different Frameworks and PHP Versions. 
-In Production you should modify at a minimum the following subjects:
+## Responses
 
-* php handler: mod_php=> php-fpm
-* secure mysql users with proper source IP limitations
+* When successfully it will return code 200 or 201
+* When not found it will return code 404
+* When the request isn't valid it will return code 500
+* When it's a create request it returns the id and detail about the request
+
+
+## Docker
+* In this project we are using docker.
+* In the containers we have php, symfony, rabbitmq, nodejs, express
+### Containers and Ports
+* webserver(php 8) - Port 80
+* database(mysql 8) - Port 3306
+* rabbitmq - Port 5672
+* nodejs(12.18.4) - Port 5050
+## Postman
+
+If you want to use [POSTMAN](https://www.postman.com/) to perform the API calls.
+Here is one [example with a collection](OrderVoucherApi.postman_collection.json) to import.
