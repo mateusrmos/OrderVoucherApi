@@ -76,7 +76,7 @@ class OrderController extends AbstractController
         $orderObj = new Order();
         $orderObj->setAmount($request->get('amount'));
         $orderObj->setUserId($request->get('userId'));
-        return new ApiResponse($this->toArray($this->orderService->createOrder($orderObj), ['create']), Response::HTTP_CREATED);
+        return new ApiResponse($this->toArray($this->orderService->createOrder($orderObj), ['create']), null, Response::HTTP_CREATED);
     }
 
     #[Route('/order/{order}', name: 'update_order', methods: ['PUT'])]
@@ -86,7 +86,6 @@ class OrderController extends AbstractController
         if (count($violations)) {
             return new ApiResponse(null, $this->violationsToArray($violations), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        $order->setHasVoucher($request->get('hasVoucher'));
-        return new ApiResponse($this->toArray($this->orderService->updateVoucher($order), ['voucher']));
+        return new ApiResponse($this->toArray($this->orderService->updateVoucher($order, $request->get('hasVoucher')), ['voucher']));
     }
 }

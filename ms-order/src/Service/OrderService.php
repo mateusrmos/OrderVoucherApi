@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Constants\AppConstants;
 use App\Entity\Order;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\OrderRepository;
 use Exception;
 use Psr\Log\LoggerInterface;
 
@@ -12,9 +12,9 @@ class OrderService
 {
 
     /**
-     * @var EntityManagerInterface
+     * @var OrderRepository
      */
-    private $em;
+    private $orderRepository;
 
     /**
      * @var LoggerInterface
@@ -26,9 +26,9 @@ class OrderService
      */
     private $voucherService;
 
-    public function __construct(EntityManagerInterface $em, LoggerInterface $logger, VoucherService $voucherService)
+    public function __construct(OrderRepository $orderRepository, LoggerInterface $logger, VoucherService $voucherService)
     {
-        $this->em = $em;
+        $this->orderRepository = $orderRepository;
         $this->logger = $logger;
         $this->voucherService = $voucherService;
     }
@@ -38,30 +38,27 @@ class OrderService
         try {
             $order->setStatus(AppConstants::ORDER_STATUS_PROCESSING);
             $order->setHasVoucher(false);
-            $this->em->persist($order);
-            $this->em->flush();
+            $this->orderRepository->create($order);
             $this->logger->info('Order created successfully - id: ' . $order->getId());
-            $voucher = $this->voucherService->createVoucher($order->getAmount(), $order->getId(), $order->getUserId());
+            $this->voucherService->createVoucher($order->getAmount(), $order->getId(), $order->getUserId());
             $order->setStatus(AppConstants::ORDER_STATUS_SUCCEEDED);
-            $this->em->persist($order);
-            $this->em->flush();
-            $this->logger->info('Order updated, voucher info: ' . json_encode($voucher));
+            $this->orderRepository->update($order);
+            $this->logger->info('Order updated, voucher issued');
         } catch (Exception $ex) {
             $order->setStatus(AppConstants::ORDER_STATUS_ERROR);
             $order->setHasVoucher(false);
-            $this->em->persist($order);
-            $this->em->flush();
+            $this->orderRepository->update($order);
             $this->logger->error('Error while creating order - Detail: ' . $ex->getMessage());
         } finally {
             return $order;
         }
     }
 
-    public function updateVoucher(Order $order): Order
+    public function updateVoucher(Order $order, bool $hasVoucher): Order
     {
         try {
-            $this->em->persist($order);
-            $this->em->flush();
+            $order->setHasVoucher($hasVoucher);
+            $this->orderRepository->update($order);
             $this->logger->info('Order voucher updated successfully - id: ' . $order->getId());
         } catch (Exception $ex) {
             $this->logger->error('Error while updating order voucher - Detail: ' . $ex->getMessage());
