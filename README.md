@@ -13,19 +13,6 @@ make up
 make install
 ```
 
-Then you will need to create the application databases. 
->To log in the database, the host is: `localhost`, the user is: `root` and the password is: `tiger`
-
-```sql
-CREATE DATABASE voucherDB;
-CREATE DATABASE orderDB;
-```
-
-Then you will need to restart the server:
-```bash
-make restart
-```
-
 Then you will need to migrate the application `orderDB` database:
 ```bash
 make migrate-up

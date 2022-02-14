@@ -21,7 +21,10 @@ services:
       APACHE_DOCUMENT_ROOT: ${APACHE_DOCUMENT_ROOT-/var/www/html}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
-      - database
+      rabbitmq:
+        condition: service_healthy
+      database:
+        condition: service_healthy
   database:
     build:
       context: "./bin/${DATABASE}"
@@ -32,6 +35,11 @@ services:
     volumes: 
       - ${MYSQL_DATA_DIR-./data/mysql}:/var/lib/mysql
       - ${MYSQL_LOG_DIR-./logs/mysql}:/var/log/mysql
+      - ${MYSQL_DUMP-./bin/mysqldump}:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: "mysql -uroot -p$MYSQL_ROOT_PASSWORD information_schema -e 'select 1'"
+      interval: 1s
+      retries: 120
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -44,8 +52,11 @@ services:
     ports:
         - 5672:5672
         - 15672:15672
-    depends_on:
-      - database
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 1s
+      timeout: 3s
+      retries: 30
     environment:
       - RABBITMQ_DEFAULT_USER=root
       - RABBITMQ_DEFAULT_PASS=2
@@ -62,7 +73,10 @@ services:
       - database
       - rabbitmq
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
+      database:
+        condition: service_healthy
     volumes: 
       - ./ms-voucher/:/app/
       - /app/node_modules/
